@@ -1,0 +1,56 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+    "setuptools-git-versioning"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modbus-gateway"
+dynamic = ["version"]
+description = "ModBus routing gateway with pluggable frontends/backends and MQTT mirroring"
+authors = [
+    { name = "Thomas Spielauer", email = "pypipackages01@tspi.at" }
+]
+readme = "README.md"
+license = { text = "BSD-3-Clause" }
+requires-python = ">=3.11"
+dependencies = [
+    "pyserial>=3.5",
+    "pyserial-asyncio>=0.6",
+    "pydantic>=2.6",
+    "paho-mqtt>=1.6"
+]
+keywords = ["modbus", "gateway", "mqtt", "serial"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Networking"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.urls]
+Homepage = "https://github.com/tspspi/modbusgw"
+
+[project.scripts]
+modbusgw = "modbusgw.cli:main"
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["modbusgw*"]
+exclude = [
+    "modbusgw_client*",
+    "tests*",
+    "docs*",
+    "examples*"
+]

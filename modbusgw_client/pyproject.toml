@@ -1,0 +1,38 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+    "setuptools-git-versioning"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modbusgw-client"
+dynamic = ["version"]
+description = "Client for ModBus (RTU/TCP/Unix transports + high-level API)"
+authors = [
+    { name = "Thomas Spielauer", email = "pypipackages01@tspi.at" }
+]
+readme = "README.md"
+license = { text = "BSD-3-Clause" }
+requires-python = ">=3.11"
+dependencies = [
+    "pyserial>=3.5"
+]
+keywords = ["modbus", "client", "rtu", "tcp"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: System :: Networking"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+
+[tool.setuptools]
+include-package-data = true
+packages = ["modbusgw_client"]
+package-dir = { "modbusgw_client" = "." }

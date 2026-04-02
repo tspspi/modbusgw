@@ -29,6 +29,9 @@ classifiers = [
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 
+[project.utls]
+Homepage = "https://github.com/tspspi/modbusgw"
+
 [tool.setuptools-git-versioning]
 enabled = true
 

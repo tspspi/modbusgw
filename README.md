@@ -20,7 +20,6 @@ This project has been developed to allow multiple services to access various ser
 
 The following features are still work in progress:
 
-* Appropriate daemonization (currently the gateway executes in foreground)
 * MQTT support
 * REST API support
 
@@ -313,6 +312,46 @@ via unencrypted TCP:
       }
    ]
 }
+```
+
+## FreeBSD `rc.init` script
+
+The repository contains an `rc.init` script in the `rc.d` subdirectory. This is suited
+for FreeBSDs `rc.init` infrastructure and allows setting startup parameters in `rc.conf`:
+
+```
+modbusgw_enable="YES"
+modbusgw_user="modbusgw"
+modbusgw_group="modbusgw"
+```
+
+The default configuration file location when using the `rc.init` script is `/usr/local/etc/modbusgw/modbusgateway.cfg`,
+which can be overriden via the `modbusgw_config` variable. In addition the script ensures
+the presence and writeability of the `/var/modbusgw` directory. The script supports:
+
+* `start`
+* `stop`
+* `status`
+* `restart`
+* `reload` (note that this does not reload the configuration for logging!)
+
+## Running
+
+When not using the `rc.init` script mentioned above one can launch the application in
+foreground via
+
+```
+$ modbusgw
+```
+
+To execute the daemon simply add the appropriate lifecycle commands:
+
+```
+$ modbusgw start
+$ modbusgw stop
+$ modbusgw status
+$ modbusgw restart
+$ modbusgw reload
 ```
 
 ## Client Library

@@ -1,0 +1,98 @@
+#!/bin/sh
+# PROVIDE: modbusgw
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="modbusgw"
+rcvar="modbusgw_enable"
+
+load_rc_config $name
+
+: ${modbusgw_enable:="NO"}
+: ${modbusgw_command:="/usr/local/bin/modbusgw"}
+: ${modbusgw_config:="/usr/local/etc/modbusgw/modbusgateway.cfg"}
+: ${modbusgw_user:="modbusgw"}
+: ${modbusgw_group:="modbusgw"}
+: ${modbusgw_pidfile:="/var/run/modbusgw.pid"}
+: ${modbusgw_var_dir:="/var/modbusgw"}
+: ${modbusgw_log_file:="${modbusgw_var_dir}/modbusgw.log"}
+: ${modbusgw_timeout:="15"}
+: ${modbusgw_flags:=""}
+
+command="${modbusgw_command}"
+pidfile="${modbusgw_pidfile}"
+required_files="${modbusgw_config}"
+extra_commands="reload restart status"
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+reload_cmd="${name}_reload"
+restart_cmd="${name}_restart"
+status_cmd="${name}_status"
+
+modbusgw_ensure_var_dir()
+{
+	if [ ! -d "${modbusgw_var_dir}" ]; then
+		install -d -o "${modbusgw_user}" -g "${modbusgw_group}" -m 0750 "${modbusgw_var_dir}"
+	else
+		chown "${modbusgw_user}:${modbusgw_group}" "${modbusgw_var_dir}"
+	fi
+}
+
+modbusgw_build_cmd()
+{
+	_subcmd="$1"
+	shift
+	_cmd="${command} -c \"${modbusgw_config}\" ${_subcmd}"
+	if [ -n "${modbusgw_log_file}" ]; then
+		_cmd="${_cmd} --log-file \"${modbusgw_log_file}\""
+	fi
+	for _arg in "$@"; do
+		_cmd="${_cmd} ${_arg}"
+	done
+	if [ -n "${modbusgw_flags}" ]; then
+		_cmd="${_cmd} ${modbusgw_flags}"
+	fi
+	echo "${_cmd}"
+}
+
+modbusgw_run()
+{
+	_cmd=$(modbusgw_build_cmd "$@")
+	if [ "$(id -un)" = "${modbusgw_user}" ]; then
+		/bin/sh -c "${_cmd}"
+	else
+		su -m "${modbusgw_user}" -c "${_cmd}"
+	fi
+}
+
+modbusgw_start()
+{
+	modbusgw_ensure_var_dir
+	modbusgw_run start
+}
+
+modbusgw_stop()
+{
+	modbusgw_run stop --timeout "${modbusgw_timeout}"
+}
+
+modbusgw_reload()
+{
+	modbusgw_run reload
+}
+
+modbusgw_restart()
+{
+	modbusgw_stop
+	sleep 1
+	modbusgw_start
+}
+
+modbusgw_status()
+{
+	modbusgw_run status
+}
+
+run_rc_command "$1"

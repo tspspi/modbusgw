@@ -11,6 +11,7 @@ class ServiceConfig(BaseModel):
     log_level: str = 'INFO'
     pid_file: Path = Path('/var/run/modbusgw.pid')
     state_dir: Path = Path('/var/lib/modbusgw')
+    log_file: Path | None = None
     reload_grace_seconds: PositiveInt = 5
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import time
 from typing import Awaitable, Callable
 
 import serial  # type: ignore
@@ -43,17 +44,28 @@ class SerialAsyncSession(SerialSession):
         writer: asyncio.StreamWriter,
         *,
         timeout: float,
+        baudrate: int,
+        parity: str,
+        stop_bits: float,
+        inter_frame_gap_ms: float | None,
     ) -> None:
         self._reader = reader
         self._writer = writer
         self._timeout = timeout
         self._lock = asyncio.Lock()
+        self._char_time = self._compute_char_time(baudrate, parity, stop_bits)
+        configured_gap = (inter_frame_gap_ms / 1000.0) if inter_frame_gap_ms is not None else 0.0
+        self._min_gap = max(configured_gap, 3.5 * self._char_time)
+        self._last_frame_end: float | None = None
 
     async def exchange(self, frame: bytes) -> bytes:
         async with self._lock:
+            await self._enforce_inter_frame_gap()
             self._writer.write(frame)
             await self._writer.drain()
-            return await self._read_response()
+            response = await self._read_response()
+            self._last_frame_end = time.monotonic()
+            return response
 
     async def close(self) -> None:
         self._writer.close()
@@ -81,6 +93,20 @@ class SerialAsyncSession(SerialSession):
         crc_bytes = buffer[-2:]
         crc_expected = int.from_bytes(crc_bytes, byteorder='little')
         return crc_expected == crc16_modbus(body)
+
+    @staticmethod
+    def _compute_char_time(baudrate: int, parity: str, stop_bits: float) -> float:
+        parity_bits = 0 if parity == 'N' else 1
+        bits_per_char = 1 + 8 + parity_bits + stop_bits
+        return bits_per_char / float(baudrate)
+
+    async def _enforce_inter_frame_gap(self) -> None:
+        if self._last_frame_end is None:
+            return
+        elapsed = time.monotonic() - self._last_frame_end
+        remaining = self._min_gap - elapsed
+        if remaining > 0:
+            await asyncio.sleep(remaining)
 
 
 class SerialBackend(BackendBase):
@@ -173,4 +199,12 @@ async def default_session_factory(config: SerialBackendConfig) -> SerialSession:
         bytesize=8,
     )
     timeout = config.request_timeout_ms / 1000.0
-    return SerialAsyncSession(reader, writer, timeout=timeout)
+    return SerialAsyncSession(
+        reader,
+        writer,
+        timeout=timeout,
+        baudrate=config.baudrate,
+        parity=config.parity,
+        stop_bits=config.stop_bits,
+        inter_frame_gap_ms=config.inter_frame_gap_ms,
+    )

@@ -96,6 +96,7 @@ class SerialBackendConfig(BaseModel):
     parity: Literal['N', 'E', 'O'] = 'N'
     stop_bits: PositiveFloat = 1
     request_timeout_ms: PositiveInt = 1200
+    inter_frame_gap_ms: PositiveFloat | None = None
     retry: RetryConfig = RetryConfig()
 
 

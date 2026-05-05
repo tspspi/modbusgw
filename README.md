@@ -8,6 +8,8 @@ __Note__: Arbitration does not work when multiple applications access the same v
 
 This project has been developed to allow multiple services to access various services attached to the same hardware ModBus network on a machine exploiting multiple RS485 interfaces (identified via [unique device names](https://www.tspi.at/2023/06/26/cp2102nuniquedevd.html)).
 
+![](https://raw.githubusercontent.com/tspspi/modbusgw/refs/heads/master/docs/modbusgw01.png)
+
 ## Features
 
 * __Pluggable architecture__: Modular frontends and backends, allowing further extensions in future versions.

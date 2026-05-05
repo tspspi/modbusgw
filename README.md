@@ -4,6 +4,8 @@ A flexible and extensible ModBus gateway written in Python, supporting pluggable
 
 The gateway allows to bridge, transform, and secure ModBus communication across heterogeneous systems - from serial devices to TCP and Unix domain sockets - while maintaining full control over addressing and access boundaries. It exposes a variety of frontends (emulating serial ports, ModBus TCP over UDS or IP with and without (m)TLS support) as well as backends (serial ports, ModBus IP targets, etc.). It allows multiple applications to access the same backends, providing arbitration and synchronization.
 
+__Note__: Arbitration does not work when multiple applications access the same virtual serial port frontend. In this case the operating system mimics the behaviour of a real serial port, leading to interleaving of reads and writes of the various applications. When using virtual serial ports each application instance should use their own virtual serial port. This does not apply to ModBus/TCP frontends.
+
 This project has been developed to allow multiple services to access various services attached to the same hardware ModBus network on a machine exploiting multiple RS485 interfaces (identified via [unique device names](https://www.tspi.at/2023/06/26/cp2102nuniquedevd.html)).
 
 ## Features
@@ -358,3 +360,6 @@ $ modbusgw reload
 
 This repository also contains an independent client library for interacting with ModBus systems via serial ports or ModBus TCP. The documentation is found in the `modbusgw-client` directory.
 
+## Common Pitfalls
+
+* Seeing collisions even when using `modbus-gateway` and accessing it via virtual serial ports. Arbitration only starts after the data has entered the application. Virtual serial ports do not provide arbitration between different applications by operating system design. When using this frontend each application should use their own virtual serial port. When accessing the same serial ports the reads and writes may get interleaved and interfer, as for a real serial port. This does not apply to the TCP frontends.
